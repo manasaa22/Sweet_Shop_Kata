@@ -130,6 +130,7 @@ Frontend:
 https://sweet-shop-kata-git-main-manasaa22s-projects.vercel.app/login
 ```
 
+![WhatsApp Image 2025-09-19 at 22 38 25_e1b20528](https://github.com/user-attachments/assets/1461c4d8-001f-4d57-a658-dc19cea3363a)
 
 
 

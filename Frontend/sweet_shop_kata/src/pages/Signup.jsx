@@ -10,9 +10,9 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const apiUrl = import.meta.env.VITE_BASE_API;
     try {
-      const res = await fetch("http://localhost:8000/api/auth/register", {
+      const res = await fetch(`${apiUrl}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),

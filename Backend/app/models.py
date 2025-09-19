@@ -15,6 +15,6 @@ class Sweet(Base):
     __tablename__ = "sweets"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
-    category = Column(String, index=True)
+    category = Column(String, index=True, nullable=False, default="Uncategorized")
     price = Column(Float, nullable=False)
     quantity = Column(Integer, default=0)

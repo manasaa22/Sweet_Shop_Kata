@@ -20,7 +20,6 @@ def create_sweet(
     if db_sweet:
         raise HTTPException(status_code=400, detail="Sweet already exists")
     
-    # new_sweet = models.Sweet(**sweet.dict())
     new_sweet = models.Sweet(**sweet.model_dump())
 
     try:
@@ -32,7 +31,6 @@ def create_sweet(
         raise HTTPException(status_code=500, detail="Database error while creating sweet")
     
     return new_sweet
-
 
 # ------------------ LIST SWEETS (ALL USERS) ------------------
 @router.get("/", response_model=list[schemas.SweetResponse])
@@ -53,12 +51,13 @@ def update_sweet(
     db: Session = Depends(get_db),
     _: models.User = Depends(get_current_admin)
 ):
-    # db_sweet = db.query(models.Sweet).get(sweet_id)
     db_sweet = db.get(models.Sweet, sweet_id)
 
     if not db_sweet:
         raise HTTPException(status_code=404, detail="Sweet not found")
-    
+
+    if sweet.category is not None:
+        db_sweet.category = sweet.category
     if sweet.price is not None:
         db_sweet.price = sweet.price
     if sweet.quantity is not None:

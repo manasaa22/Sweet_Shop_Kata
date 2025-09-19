@@ -20,6 +20,7 @@ class UserLogin(BaseModel):
 
 class SweetBase(BaseModel):
     name: str
+    category:str
     price: float
     quantity: int
 
@@ -27,6 +28,7 @@ class SweetCreate(SweetBase):
     pass
 
 class SweetUpdate(BaseModel):
+    category: str | None = None
     price: float | None = None
     quantity: int | None = None
 

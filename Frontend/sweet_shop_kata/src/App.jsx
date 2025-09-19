@@ -1,6 +1,6 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import AdminDashboard from "./pages/AdminDashboard";
-import CustomerDashboard from "./pages/CustomerDashboard";
+import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
@@ -31,7 +31,7 @@ export default function App() {
           path="/dashboard"
           element={
             <PrivateRoute>
-              <CustomerDashboard />
+              <Dashboard />
             </PrivateRoute>
           }
         />

@@ -47,9 +47,11 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
+    username = form_data.username.strip()
+    password = form_data.password.strip()
     # Look up user by username
-    db_user = db.query(User).filter(User.username == form_data.username).first()
-    if not db_user or not pwd_context.verify(form_data.password, db_user.hashed_password):
+    db_user = db.query(User).filter(User.username == username).first()
+    if not db_user or not pwd_context.verify(password, db_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",

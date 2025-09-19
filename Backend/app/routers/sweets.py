@@ -94,6 +94,10 @@ def delete_sweet(
 
 
 # ------------------ SEARCH SWEETS (ALL USERS) ------------------
+
+from sqlalchemy import func
+
+
 @router.get("/search", response_model=list[schemas.SweetResponse])
 def search_sweets(
     name: str | None = None,
@@ -106,18 +110,23 @@ def search_sweets(
     _: models.User = Depends(get_current_user)
 ):
     query = db.query(models.Sweet)
+
     if name:
+        name = name.strip()
         query = query.filter(models.Sweet.name.ilike(f"%{name}%"))
+        #query = query.filter(func.lower(models.Sweet.name).like(f"%{name.strip()}%"))
+
     if category:
-        query = query.filter(models.Sweet.category.ilike(f"%{category}%"))
+        category = category.strip()
+        query = query.filter(func.lower(models.Sweet.category).like(f"%{category.strip()}%"))
+
     if min_price is not None:
         query = query.filter(models.Sweet.price >= min_price)
+
     if max_price is not None:
         query = query.filter(models.Sweet.price <= max_price)
-    
+
     return query.offset(skip).limit(limit).all()
-
-
 # ------------------ PURCHASE SWEET (USER ONLY) ------------------
 @router.post("/{sweet_id}/purchase", response_model=schemas.SweetResponse)
 def purchase_sweet(

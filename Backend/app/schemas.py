@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserCreate(BaseModel):
@@ -19,10 +19,10 @@ class UserLogin(BaseModel):
     password: str
 
 class SweetBase(BaseModel):
-    name: str
-    category:str
-    price: float
-    quantity: int
+    name: str = Field(..., min_length=1, max_length=100)
+    category: str = Field(..., min_length=1, max_length=50)
+    price: float = Field(..., gt=0)
+    quantity: int = Field(..., ge=0)
 
 class SweetCreate(SweetBase):
     pass

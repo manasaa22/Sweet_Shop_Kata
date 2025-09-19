@@ -1,43 +1,40 @@
+// pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [sweets, setSweets] = useState([]);
-  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
   const apiUrl = import.meta.env.VITE_BASE_API;
   const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role"); // get user role
+  const navigate = useNavigate();
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
     fetchSweets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSweets = async () => {
-    const res = await fetch(`${apiUrl}/sweets`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setSweets(data);
-  };
+    try {
+      const params = new URLSearchParams();
+      if (search) params.append("name", search);
+      if (category) params.append("category", category);
+      if (minPrice) params.append("min_price", minPrice);
+      if (maxPrice) params.append("max_price", maxPrice);
 
-  const handlePurchase = async (id) => {
-    const res = await fetch(`${apiUrl}/sweets/${id}/purchase`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) {
-      alert("Purchase successful!");
-      setSweets((prev) =>
-        prev.map((sweet) =>
-          sweet.id === id ? { ...sweet, quantity: sweet.quantity - 1 } : sweet
-        )
-      );
-    } else {
-      alert("Failed to purchase sweet");
+      const res = await fetch(`${apiUrl}/sweets/search?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setSweets(data);
+    } catch (err) {
+      console.error("Error fetching sweets:", err);
     }
   };
 
@@ -47,12 +44,40 @@ export default function Dashboard() {
     navigate("/login");
   };
 
+  const handlePurchase = async (id, availableQty) => {
+    const qty = prompt("Enter quantity to purchase:", "1");
+    if (!qty || Number(qty) <= 0) return;
+
+    if (Number(qty) > availableQty) {
+      alert(`Only ${availableQty} items are available. Please enter less than or equal to quantity.`);
+      return;
+    }
+
+    try {
+      for (let i = 0; i < Number(qty); i++) {
+        const res = await fetch(`${apiUrl}/sweets/${id}/purchase`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          alert(data.detail || "Purchase failed");
+          return;
+        }
+      }
+      alert("Purchase successful!");
+      fetchSweets();
+    } catch (err) {
+      console.error("Purchase error:", err);
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">
-          Welcome {role === "admin" ? "Admin" : "Customer"}!
+          Welcome to Kata Sweet Shop 🍬 {role === "admin" ? "Admin" : "Customer"}!
         </h2>
 
         <div className="flex gap-4">
@@ -73,24 +98,64 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Available Sweets */}
-      <h3 className="text-xl font-semibold mb-4">Available Sweets 🍭</h3>
+      {/* Filters */}
+      <div className="mb-6 flex flex-wrap gap-3">
+        <input
+          type="text"
+          placeholder="Search by name..."
+          className="border p-2 rounded"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Category"
+          className="border p-2 rounded"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Min Price"
+          className="border p-2 rounded w-28"
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Max Price"
+          className="border p-2 rounded w-28"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+        />
+        <button
+          onClick={fetchSweets}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Apply Filters
+        </button>
+      </div>
+
+      {/* Sweet List */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {sweets.map((sweet) => (
           <div
             key={sweet.id}
-            className="border rounded-lg p-4 shadow hover:shadow-lg"
+            className="border rounded-lg p-4 shadow hover:shadow-lg transition"
           >
             <h3 className="text-lg font-semibold">{sweet.name}</h3>
             <p>Category: {sweet.category}</p>
             <p>Price: ${sweet.price}</p>
             <p>Stock: {sweet.quantity}</p>
+
+            {/* Only show Buy for non-admins */}
             {role !== "admin" && (
               <button
-                onClick={() => handlePurchase(sweet.id)}
-                className="mt-2 bg-purple-500 text-white px-4 py-1 rounded hover:bg-purple-600"
+                onClick={() => handlePurchase(sweet.id, sweet.quantity)}
+                disabled={sweet.quantity <= 0}
+                className="mt-3 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 disabled:opacity-50"
               >
-                Buy
+                {sweet.quantity > 0 ? "Buy" : "Out of Stock"}
               </button>
             )}
           </div>

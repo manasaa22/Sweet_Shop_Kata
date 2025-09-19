@@ -23,6 +23,25 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# @router.post("/login")
+# def login(
+#     form_data: OAuth2PasswordRequestForm = Depends(),
+#     db: Session = Depends(get_db)
+# ):
+#     # Look up user by username
+#     db_user = db.query(User).filter(User.username == form_data.username).first()
+#     if not db_user or not pwd_context.verify(form_data.password, db_user.hashed_password):
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Invalid credentials",
+#             headers={"WWW-Authenticate": "Bearer"},
+#         )
+
+#     # Generate JWT token
+#     access_token = create_access_token({"sub": db_user.username})
+#     return {"access_token": access_token, "token_type": "bearer"}
+
+
 @router.post("/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -39,4 +58,10 @@ def login(
 
     # Generate JWT token
     access_token = create_access_token({"sub": db_user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+
+    # Return token + role
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": db_user.role
+    }
